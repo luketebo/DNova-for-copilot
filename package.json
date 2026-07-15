@@ -1,0 +1,181 @@
+{
+  "name": "dnova-for-copilot",
+  "displayName": "DNova for Copilot Chat",
+  "description": "Use DNova GLM-5.2 in Copilot Chat. Zero config, BYOK.",
+  "icon": "resources/icon.png",
+  "version": "0.6.2",
+  "publisher": "luke",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/luke/dnova-for-copilot"
+  },
+  "engines": {
+    "vscode": "^1.116.0",
+    "node": ">=24"
+  },
+  "categories": [
+    "AI",
+    "Chat",
+    "Programming Languages"
+  ],
+  "keywords": [
+    "dnova",
+    "deloitte",
+    "glm-5.2",
+    "glm",
+    "copilot",
+    "github copilot",
+    "copilot chat",
+    "byok",
+    "language model",
+    "ai",
+    "chat"
+  ],
+  "activationEvents": [
+    "onUri",
+    "onStartupFinished"
+  ],
+  "enabledApiProposals": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languageModelChatProviders": [
+      {
+        "vendor": "dnova",
+        "displayName": "DNova"
+      }
+    ],
+    "commands": [
+      {
+        "command": "dnova-copilot.setApiKey",
+        "title": "%dnova-copilot.command.setApiKey%"
+      },
+      {
+        "command": "dnova-copilot.getApiKey",
+        "title": "%dnova-copilot.command.getApiKey%"
+      },
+      {
+        "command": "dnova-copilot.clearApiKey",
+        "title": "%dnova-copilot.command.clearApiKey%"
+      },
+      {
+        "command": "dnova-copilot.openSettings",
+        "title": "%dnova-copilot.command.openSettings%"
+      },
+      {
+        "command": "dnova-copilot.showLogs",
+        "title": "%dnova-copilot.command.showLogs%"
+      },
+      {
+        "command": "dnova-copilot.openRequestDumpsFolder",
+        "title": "%dnova-copilot.command.openRequestDumpsFolder%"
+      }
+    ],
+    "walkthroughs": [
+      {
+        "id": "dnovaGettingStarted",
+        "title": "%dnova-copilot.walkthrough.title%",
+        "description": "%dnova-copilot.walkthrough.description%",
+        "steps": [
+          {
+            "id": "setApiKey",
+            "title": "%dnova-copilot.walkthrough.setApiKey.title%",
+            "description": "%dnova-copilot.walkthrough.setApiKey.description%",
+            "media": {
+              "markdown": "resources/walkthrough/set-api-key.md"
+            },
+            "completionEvents": [
+              "onCommand:dnova-copilot.setApiKey"
+            ]
+          },
+          {
+            "id": "showModels",
+            "title": "%dnova-copilot.walkthrough.showModels.title%",
+            "description": "%dnova-copilot.walkthrough.showModels.description%",
+            "media": {
+              "markdown": "resources/walkthrough/show-models.md"
+            }
+          },
+          {
+            "id": "advancedSettings",
+            "title": "%dnova-copilot.walkthrough.advancedSettings.title%",
+            "description": "%dnova-copilot.walkthrough.advancedSettings.description%",
+            "media": {
+              "markdown": "resources/walkthrough/advanced-settings.md"
+            }
+          }
+        ]
+      }
+    ],
+    "configuration": {
+      "title": "%dnova-copilot.config.title%",
+      "properties": {
+        "dnova-copilot.baseUrl": {
+          "type": "string",
+          "default": "https://nova.deloitte.com.cn/del/v1",
+          "description": "%dnova-copilot.config.baseUrl.description%"
+        },
+        "dnova-copilot.maxTokens": {
+          "type": "number",
+          "default": 0,
+          "minimum": 0,
+          "description": "%dnova-copilot.config.maxTokens.description%"
+        },
+        "dnova-copilot.modelIdOverrides": {
+          "type": "object",
+          "default": {
+            "glm-5.2": "glm-5.2"
+          },
+          "description": "%dnova-copilot.config.modelIdOverrides.description%",
+          "additionalProperties": false,
+          "properties": {
+            "glm-5.2": {
+              "type": "string",
+              "description": "%dnova-copilot.config.modelIdOverrides.glm-5.2.description%"
+            }
+          }
+        },
+        "dnova-copilot.debugMode": {
+          "type": "string",
+          "default": "minimal",
+          "enum": [
+            "minimal",
+            "metadata",
+            "verbose"
+          ],
+          "enumItemLabels": [
+            "%dnova-copilot.config.debugMode.minimal.label%",
+            "%dnova-copilot.config.debugMode.metadata.label%",
+            "%dnova-copilot.config.debugMode.verbose.label%"
+          ],
+          "markdownEnumDescriptions": [
+            "%dnova-copilot.config.debugMode.minimal.description%",
+            "%dnova-copilot.config.debugMode.metadata.description%",
+            "%dnova-copilot.config.debugMode.verbose.description%"
+          ],
+          "markdownDescription": "%dnova-copilot.config.debugMode.description%"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "clean": "node -e \"require('node:fs').rmSync('out', { recursive: true, force: true, maxRetries: process.platform === 'win32' ? 10 : 0 })\"",
+    "vscode:prepublish": "bash .github/scripts/prepare-marketplace-readme.sh && npm run compile",
+    "compile": "npm run clean && tsc -p ./",
+    "watch": "npm run clean && tsc -watch -p ./",
+    "lint": "oxlint",
+    "format": "oxfmt --write src/",
+    "format:check": "oxfmt --check src/",
+    "package": "vsce package --readme-path dist/README.marketplace.md -o dist/",
+    "login": "vsce login Vizards"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "@types/vscode": "^1.116.0",
+    "@vscode/vsce": "^3.9.1",
+    "ovsx": "0.10.12",
+    "oxfmt": "^0.47.0",
+    "oxlint": "^1.62.0",
+    "typescript": "^6.0.3"
+  }
+}
