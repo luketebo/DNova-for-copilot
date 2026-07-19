@@ -3,7 +3,7 @@
   "displayName": "DNova for Copilot Chat",
   "description": "Use DNova GLM-5.2 in Copilot Chat. Zero config, BYOK.",
   "icon": "resources/icon.png",
-  "version": "0.6.2",
+  "version": "0.0.1",
   "publisher": "luke",
   "license": "MIT",
   "repository": {
