@@ -1,8 +1,8 @@
 import vscode from 'vscode';
-import { EXTERNAL_URLS } from '../consts';
 import { t } from '../i18n';
 import { logger } from '../logger';
 import { ensureRequestDumpRoot } from '../provider/debug';
+import { configureAbapAdtMcp, setAbapAdtPassword, showAbapAdtMcpConfig } from './mcp';
 
 export function registerCommands(context: vscode.ExtensionContext): void {
 	context.subscriptions.push(
@@ -15,6 +15,15 @@ export function registerCommands(context: vscode.ExtensionContext): void {
 		),
 		vscode.commands.registerCommand('dnova-copilot.openSettings', () =>
 			vscode.commands.executeCommand('workbench.action.openSettings', 'dnova-copilot'),
+		),
+		vscode.commands.registerCommand('dnova-copilot.setAbapAdtPassword', () =>
+			setAbapAdtPassword(context),
+		),
+		vscode.commands.registerCommand('dnova-copilot.configureAbapAdtMcp', () =>
+			configureAbapAdtMcp(context),
+		),
+		vscode.commands.registerCommand('dnova-copilot.showAbapAdtMcpConfig', () =>
+			showAbapAdtMcpConfig(context),
 		),
 	);
 }

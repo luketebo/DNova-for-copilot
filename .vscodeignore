@@ -2,10 +2,12 @@
 README.md
 README.zh-cn.md
 src/**
-out/**/*.map
+**/*.ts
+**/*.map
 out/**/*.d.ts
 out/**/*.d.ts.map
 tsconfig.json
+tsconfig.test.json
 .github/**
 .gitignore
 .nvmrc
@@ -20,3 +22,7 @@ package-lock.json
 .env*
 !.env.example
 vscode.proposed.languageModelThinkingPart.d.ts
+scripts/**
+tools/**
+test/**
+tests/**

@@ -4,7 +4,7 @@
   "description": "Use DNova GLM-5.2 in Copilot Chat. Zero config, BYOK.",
   "icon": "resources/icon.png",
   "version": "0.0.1",
-  "publisher": "luke",
+  "publisher": "luketebo",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -45,6 +45,12 @@
         "displayName": "DNova"
       }
     ],
+    "mcpServerDefinitionProviders": [
+      {
+        "id": "dnova.mcp-abap-adt",
+        "label": "%dnova-copilot.mcp.abapAdt.providerLabel%"
+      }
+    ],
     "commands": [
       {
         "command": "dnova-copilot.setApiKey",
@@ -69,6 +75,18 @@
       {
         "command": "dnova-copilot.openRequestDumpsFolder",
         "title": "%dnova-copilot.command.openRequestDumpsFolder%"
+      },
+      {
+        "command": "dnova-copilot.setAbapAdtPassword",
+        "title": "%dnova-copilot.command.setAbapAdtPassword%"
+      },
+      {
+        "command": "dnova-copilot.configureAbapAdtMcp",
+        "title": "%dnova-copilot.command.configureAbapAdtMcp%"
+      },
+      {
+        "command": "dnova-copilot.showAbapAdtMcpConfig",
+        "title": "%dnova-copilot.command.showAbapAdtMcpConfig%"
       }
     ],
     "walkthroughs": [
@@ -154,28 +172,113 @@
             "%dnova-copilot.config.debugMode.verbose.description%"
           ],
           "markdownDescription": "%dnova-copilot.config.debugMode.description%"
+        },
+        "dnova-copilot.mcp.abapAdt.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "%dnova-copilot.config.mcp.abapAdt.enabled.description%"
+        },
+        "dnova-copilot.mcp.abapAdt.url": {
+          "type": "string",
+          "default": "",
+          "description": "%dnova-copilot.config.mcp.abapAdt.url.description%",
+          "examples": [
+            "https://my-sap-system.example.com:8000"
+          ]
+        },
+        "dnova-copilot.mcp.abapAdt.client": {
+          "type": "string",
+          "default": "100",
+          "description": "%dnova-copilot.config.mcp.abapAdt.client.description%"
+        },
+        "dnova-copilot.mcp.abapAdt.username": {
+          "type": "string",
+          "default": "",
+          "description": "%dnova-copilot.config.mcp.abapAdt.username.description%"
+        },
+        "dnova-copilot.mcp.abapAdt.password": {
+          "type": "string",
+          "default": "",
+          "description": "%dnova-copilot.config.mcp.abapAdt.password.description%",
+          "markdownDescription": "%dnova-copilot.config.mcp.abapAdt.password.markdownDescription%"
+        },
+        "dnova-copilot.mcp.abapAdt.useSecretStorage": {
+          "type": "boolean",
+          "default": false,
+          "description": "%dnova-copilot.config.mcp.abapAdt.useSecretStorage.description%"
+        },
+        "dnova-copilot.mcp.abapAdt.envPath": {
+          "type": "string",
+          "default": "",
+          "description": "%dnova-copilot.config.mcp.abapAdt.envPath.description%",
+          "examples": [
+            "/Users/luke/Documents/CodeSpace/SAP-Fiori/.env"
+          ]
+        },
+        "dnova-copilot.mcp.abapAdt.language": {
+          "type": "string",
+          "default": "EN",
+          "description": "%dnova-copilot.config.mcp.abapAdt.language.description%",
+          "examples": [
+            "EN",
+            "ZH"
+          ]
+        },
+        "dnova-copilot.mcp.abapAdt.systemType": {
+          "type": "string",
+          "default": "onprem",
+          "enum": [
+            "onprem",
+            "cloud",
+            "legacy"
+          ],
+          "enumDescriptions": [
+            "%dnova-copilot.config.mcp.abapAdt.systemType.onprem.description%",
+            "%dnova-copilot.config.mcp.abapAdt.systemType.cloud.description%",
+            "%dnova-copilot.config.mcp.abapAdt.systemType.legacy.description%"
+          ],
+          "description": "%dnova-copilot.config.mcp.abapAdt.systemType.description%"
+        },
+        "dnova-copilot.mcp.abapAdt.authType": {
+          "type": "string",
+          "default": "basic",
+          "enum": [
+            "basic",
+            "jwt"
+          ],
+          "enumDescriptions": [
+            "%dnova-copilot.config.mcp.abapAdt.authType.basic.description%",
+            "%dnova-copilot.config.mcp.abapAdt.authType.jwt.description%"
+          ],
+          "description": "%dnova-copilot.config.mcp.abapAdt.authType.description%"
         }
       }
     }
   },
   "scripts": {
     "clean": "node -e \"require('node:fs').rmSync('out', { recursive: true, force: true, maxRetries: process.platform === 'win32' ? 10 : 0 })\"",
-    "vscode:prepublish": "bash .github/scripts/prepare-marketplace-readme.sh && npm run compile",
+    "vscode:prepublish": "bash .github/scripts/prepare-marketplace-readme.sh && npm run bundle",
     "compile": "npm run clean && tsc -p ./",
     "watch": "npm run clean && tsc -watch -p ./",
+    "bundle": "npm run clean && esbuild src/extension.ts --bundle --outfile=out/extension.js --minify --format=cjs --platform=node --external:vscode",
     "lint": "oxlint",
     "format": "oxfmt --write src/",
     "format:check": "oxfmt --check src/",
     "package": "vsce package --readme-path dist/README.marketplace.md -o dist/",
-    "login": "vsce login Vizards"
+    "login": "vsce login luke",
+    "publish": "npm run package && vsce publish --readme-path dist/README.marketplace.md"
   },
   "devDependencies": {
-    "@types/node": "^25.6.0",
+    "@types/node": "^25.9.5",
     "@types/vscode": "^1.116.0",
     "@vscode/vsce": "^3.9.1",
+    "esbuild": "^0.28.2",
     "ovsx": "0.10.12",
     "oxfmt": "^0.47.0",
     "oxlint": "^1.62.0",
     "typescript": "^6.0.3"
+  },
+  "dependencies": {
+    "@mcp-abap-adt/core": "^8.13.0"
   }
 }

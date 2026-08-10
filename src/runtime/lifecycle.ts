@@ -5,6 +5,7 @@ import { DnovaChatProvider } from '../provider';
 import { registerActionUrls } from './actions';
 import { registerCommands } from './commands';
 import { initializeDiagnostics } from './diagnostics';
+import { registerMcpServer } from './mcp';
 import { registerProvider } from './provider';
 import { showWelcomeIfNeeded } from './welcome';
 
@@ -14,6 +15,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 	await initializeDiagnostics(context);
 	registerCommands(context);
 	registerActionUrls(context);
+	await registerMcpServer(context);
 
 	try {
 		const provider = await registerProvider(context);
