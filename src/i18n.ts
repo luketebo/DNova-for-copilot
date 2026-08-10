@@ -190,6 +190,28 @@ const zh: Translations = {
 	'extension.welcomeFailed': '欢迎引导加载异常',
 	'extension.openRequestDumpsFolderFailed':
 		'打开请求 dump 目录失败，请运行 "DNova: 显示日志" 查看详情。',
+
+	// MCP startup check
+	'mcp.startup.checking': '正在检查 ABAP ADT MCP 连接…',
+	'mcp.startup.ok': '✅ ABAP ADT MCP 运行正常，已连接 SAP。',
+	'mcp.startup.failed': '❌ ABAP ADT MCP 未能连接 SAP：{0}',
+	'mcp.startup.notConfigured': '⚠️ ABAP ADT MCP 已就绪但未配置完整，缺少：{0}',
+	'mcp.startup.openConfig': '查看配置',
+	'mcp.startup.dismiss': '知道了',
+	'mcp.startup.errorCode': '连接失败（{0}）',
+	'mcp.startup.missing.url': 'SAP 地址(url)',
+	'mcp.startup.missing.username': '用户名',
+	'mcp.startup.missing.password': '密码（未注入）',
+
+	// ABAP Agent guide
+	'agentGuide.created':
+		'已在工作区创建 ABAP Agent 指引（{0}），agent 将优先使用 dnova-abap-mcp。',
+	'agentGuide.updated': '已更新 ABAP Agent 指引（{0}）。',
+	'agentGuide.removed': '已移除 ABAP Agent 指引。',
+	'agentGuide.notFound': '未找到 ABAP Agent 指引块。',
+	'agentGuide.notAbap': '当前工作区未检测到 ABAP 文件，未生成指引。',
+	'agentGuide.noWorkspace': '未打开工作区，无法生成指引。',
+	'agentGuide.writeFailed': '写入 {0} 失败：{1}',
 };
 
 const en: Translations = {
@@ -404,6 +426,28 @@ const en: Translations = {
 	'extension.welcomeFailed': 'Failed to show DNova welcome prompt',
 	'extension.openRequestDumpsFolderFailed':
 		'Failed to open request dumps folder. Run "DNova: Show Logs" for details.',
+
+	// MCP startup check
+	'mcp.startup.checking': 'Checking ABAP ADT MCP connection…',
+	'mcp.startup.ok': '✅ ABAP ADT MCP is running and connected to SAP.',
+	'mcp.startup.failed': '❌ ABAP ADT MCP could not connect to SAP: {0}',
+	'mcp.startup.notConfigured': '⚠️ ABAP ADT MCP is ready but not fully configured — missing: {0}',
+	'mcp.startup.openConfig': 'View Config',
+	'mcp.startup.dismiss': 'Dismiss',
+	'mcp.startup.errorCode': 'Connection failed ({0})',
+	'mcp.startup.missing.url': 'SAP URL',
+	'mcp.startup.missing.username': 'username',
+	'mcp.startup.missing.password': 'password (not injected)',
+
+	// ABAP Agent guide
+	'agentGuide.created':
+		'Created the ABAP Agent guide ({0}). Agents will now prefer the dnova-abap-mcp MCP server for ABAP tasks.',
+	'agentGuide.updated': 'Updated the ABAP Agent guide ({0}).',
+	'agentGuide.removed': 'Removed the ABAP Agent guide.',
+	'agentGuide.notFound': 'No ABAP Agent guide block was found.',
+	'agentGuide.notAbap': 'No ABAP files detected in this workspace; guide not created.',
+	'agentGuide.noWorkspace': 'No workspace is open; cannot create the guide.',
+	'agentGuide.writeFailed': 'Failed to write {0}: {1}',
 };
 
 /**

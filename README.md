@@ -29,7 +29,7 @@ Two things in one extension:
 
 - **Power up Copilot, don't replace it.** No new sidebar or UI to learn — just a new model in the picker you already use, plus ABAP tools in the chat you already have.
 - **Agent mode, tool calling, instructions, skills — all still work.** Copilot's entire stack, running on DNova.
-- **Built-in ABAP ADT MCP (DTT ABAP ADT).** The `@mcp-abap-adt/core` server is bundled inside the extension — no separate install, no `npx`. Enable it, point it at your SAP system, and use natural language to work with ABAP objects.
+- **Built-in ABAP ADT MCP (dnova-abap-mcp).** The `@mcp-abap-adt/core` server is bundled inside the extension — no separate install, no `npx`. Enable it, point it at your SAP system, and use natural language to work with ABAP objects.
 - **BYOK, pay DNova directly.** Your API key, your bill, your rate limits. Stored in the OS keychain, never on disk.
 
 ## Features
@@ -38,7 +38,7 @@ Two things in one extension:
 
 The DNova model shows up alongside GPT-4o, Claude, and friends in Copilot Chat's model selector. Switch models mid-chat without losing history.
 
-### Built-in ABAP ADT MCP (DTT ABAP ADT)
+### Built-in ABAP ADT MCP (dnova-abap-mcp)
 
 A complete SAP ABAP toolset is bundled with the extension:
 
@@ -99,6 +99,7 @@ Pure VS Code API + Node.js built-ins, plus the bundled `@mcp-abap-adt/core` MCP.
 4. First tool use may ask you to **Allow in this Session** (VS Code's MCP trust prompt) — click allow.
 
 Useful commands:
+
 - **DNova: Show ABAP ADT MCP Config** — shows the exact `.env` path, launch args and a health check (which settings are missing)
 - **DNova: Configure ABAP ADT MCP** — write the server into a global/workspace `mcp.json`
 - **DNova: Set ABAP ADT MCP Password** — store the SAP password in the OS keychain
@@ -107,42 +108,42 @@ Useful commands:
 
 ## Models
 
-| Model            | Best For                              |
-| ---------------- | ------------------------------------- |
+| Model                   | Best For                              |
+| ----------------------- | ------------------------------------- |
 | **DNova GLM-5.2** | Coding, agent tasks, ABAP development |
 
 ## Settings
 
-| Setting | Default | Description |
-| --- | --- | --- |
-| `dnova-copilot.baseUrl` | `https://nova.deloitte.com.cn/del/v1` | DNova API base URL |
-| `dnova-copilot.maxTokens` | `0` | Max output tokens (`0` = no limit) |
-| `dnova-copilot.modelIdOverrides` | `{ "glm-5.2": "glm-5.2" }` | API model IDs to send |
-| `dnova-copilot.debugMode` | `minimal` | `minimal` / `metadata` / `verbose` diagnostics |
-| `dnova-copilot.mcp.abapAdt.enabled` | `true` | Enable the bundled ABAP ADT MCP server |
-| `dnova-copilot.mcp.abapAdt.url` | `""` | SAP system URL |
-| `dnova-copilot.mcp.abapAdt.client` | `100` | SAP client number |
-| `dnova-copilot.mcp.abapAdt.username` | `""` | SAP username |
-| `dnova-copilot.mcp.abapAdt.password` | `""` | SAP password (prefer `useSecretStorage`) |
-| `dnova-copilot.mcp.abapAdt.useSecretStorage` | `false` | Store the SAP password in the OS keychain |
-| `dnova-copilot.mcp.abapAdt.envPath` | `""` | Optional path to an existing `.env` with SAP credentials |
-| `dnova-copilot.mcp.abapAdt.language` | `EN` | SAP logon language |
-| `dnova-copilot.mcp.abapAdt.systemType` | `onprem` | `onprem` / `cloud` / `legacy` |
-| `dnova-copilot.mcp.abapAdt.authType` | `basic` | `basic` / `jwt` |
+| Setting                                        | Default                                 | Description                                               |
+| ---------------------------------------------- | --------------------------------------- | --------------------------------------------------------- |
+| `dnova-copilot.baseUrl`                      | `https://nova.deloitte.com.cn/del/v1` | DNova API base URL                                        |
+| `dnova-copilot.maxTokens`                    | `0`                                   | Max output tokens (`0` = no limit)                      |
+| `dnova-copilot.modelIdOverrides`             | `{ "glm-5.2": "glm-5.2" }`            | API model IDs to send                                     |
+| `dnova-copilot.debugMode`                    | `minimal`                             | `minimal` / `metadata` / `verbose` diagnostics      |
+| `dnova-copilot.mcp.abapAdt.enabled`          | `true`                                | Enable the bundled ABAP ADT MCP server                    |
+| `dnova-copilot.mcp.abapAdt.url`              | `""`                                  | SAP system URL                                            |
+| `dnova-copilot.mcp.abapAdt.client`           | `100`                                 | SAP client number                                         |
+| `dnova-copilot.mcp.abapAdt.username`         | `""`                                  | SAP username                                              |
+| `dnova-copilot.mcp.abapAdt.password`         | `""`                                  | SAP password (prefer`useSecretStorage`)                 |
+| `dnova-copilot.mcp.abapAdt.useSecretStorage` | `false`                               | Store the SAP password in the OS keychain                 |
+| `dnova-copilot.mcp.abapAdt.envPath`          | `""`                                  | Optional path to an existing`.env` with SAP credentials |
+| `dnova-copilot.mcp.abapAdt.language`         | `EN`                                  | SAP logon language                                        |
+| `dnova-copilot.mcp.abapAdt.systemType`       | `onprem`                              | `onprem` / `cloud` / `legacy`                       |
+| `dnova-copilot.mcp.abapAdt.authType`         | `basic`                               | `basic` / `jwt`                                       |
 
 ## Commands
 
-| Command | Description |
-| --- | --- |
-| `DNova: Set API Key` | Store your DNova API key in the OS keychain |
-| `DNova: Get API Key` | Show whether an API key is configured |
-| `DNova: Clear API Key` | Remove the stored API key |
-| `DNova: Open Settings` | Open the extension settings |
-| `DNova: Show Logs` | Open the extension output channel |
-| `DNova: Open Request Dumps Folder` | Open the verbose debug dump folder |
-| `DNova: Set ABAP ADT MCP Password` | Store the SAP password in the OS keychain |
-| `DNova: Configure ABAP ADT MCP` | Write the MCP server into `mcp.json` (global or workspace) |
-| `DNova: Show ABAP ADT MCP Config` | Show `.env` path, launch args and a connection health check |
+| Command                              | Description                                                  |
+| ------------------------------------ | ------------------------------------------------------------ |
+| `DNova: Set API Key`               | Store your DNova API key in the OS keychain                  |
+| `DNova: Get API Key`               | Show whether an API key is configured                        |
+| `DNova: Clear API Key`             | Remove the stored API key                                    |
+| `DNova: Open Settings`             | Open the extension settings                                  |
+| `DNova: Show Logs`                 | Open the extension output channel                            |
+| `DNova: Open Request Dumps Folder` | Open the verbose debug dump folder                           |
+| `DNova: Set ABAP ADT MCP Password` | Store the SAP password in the OS keychain                    |
+| `DNova: Configure ABAP ADT MCP`    | Write the MCP server into`mcp.json` (global or workspace)  |
+| `DNova: Show ABAP ADT MCP Config`  | Show`.env` path, launch args and a connection health check |
 
 ## Security
 

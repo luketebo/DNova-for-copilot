@@ -3,6 +3,7 @@ import { t } from '../i18n';
 import { logger } from '../logger';
 import { DnovaChatProvider } from '../provider';
 import { registerActionUrls } from './actions';
+import { ensureAbapAgentGuide } from './agentGuide';
 import { registerCommands } from './commands';
 import { initializeDiagnostics } from './diagnostics';
 import { registerMcpServer } from './mcp';
@@ -16,6 +17,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 	registerCommands(context);
 	registerActionUrls(context);
 	await registerMcpServer(context);
+	void ensureAbapAgentGuide().catch((error) => {
+		logger.warn('ABAP agent guide setup failed', error);
+	});
 
 	try {
 		const provider = await registerProvider(context);

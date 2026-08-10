@@ -2,7 +2,8 @@ import vscode from 'vscode';
 import { t } from '../i18n';
 import { logger } from '../logger';
 import { ensureRequestDumpRoot } from '../provider/debug';
-import { configureAbapAdtMcp, setAbapAdtPassword, showAbapAdtMcpConfig } from './mcp';
+import { createAbapAgentGuide, removeAbapAgentGuide } from './agentGuide';
+import { configureAbapAdtMcp, runStartupCheck, setAbapAdtPassword, showAbapAdtMcpConfig } from './mcp';
 
 export function registerCommands(context: vscode.ExtensionContext): void {
 	context.subscriptions.push(
@@ -24,6 +25,15 @@ export function registerCommands(context: vscode.ExtensionContext): void {
 		),
 		vscode.commands.registerCommand('dnova-copilot.showAbapAdtMcpConfig', () =>
 			showAbapAdtMcpConfig(context),
+		),
+		vscode.commands.registerCommand('dnova-copilot.checkAbapAdtMcp', () =>
+			runStartupCheck(context),
+		),
+		vscode.commands.registerCommand('dnova-copilot.createAbapAgentGuide', () =>
+			createAbapAgentGuide(),
+		),
+		vscode.commands.registerCommand('dnova-copilot.removeAbapAgentGuide', () =>
+			removeAbapAgentGuide(),
 		),
 	);
 }

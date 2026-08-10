@@ -3,7 +3,7 @@
   "displayName": "DNova for Copilot Chat",
   "description": "Use DNova GLM-5.2 in Copilot Chat. Zero config, BYOK.",
   "icon": "resources/icon.png",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "publisher": "luketebo",
   "license": "MIT",
   "repository": {
@@ -87,6 +87,23 @@
       {
         "command": "dnova-copilot.showAbapAdtMcpConfig",
         "title": "%dnova-copilot.command.showAbapAdtMcpConfig%"
+      },
+      {
+        "command": "dnova-copilot.checkAbapAdtMcp",
+        "title": "%dnova-copilot.command.checkAbapAdtMcp%"
+      },
+      {
+        "command": "dnova-copilot.createAbapAgentGuide",
+        "title": "%dnova-copilot.command.createAbapAgentGuide%"
+      },
+      {
+        "command": "dnova-copilot.removeAbapAgentGuide",
+        "title": "%dnova-copilot.command.removeAbapAgentGuide%"
+      }
+    ],
+    "chatSkills": [
+      {
+        "path": "./skills/dnova-abap-adt/SKILL.md"
       }
     ],
     "walkthroughs": [
@@ -178,6 +195,11 @@
           "default": true,
           "description": "%dnova-copilot.config.mcp.abapAdt.enabled.description%"
         },
+        "dnova-copilot.mcp.abapAdt.startupCheck": {
+          "type": "boolean",
+          "default": true,
+          "description": "%dnova-copilot.config.mcp.abapAdt.startupCheck.description%"
+        },
         "dnova-copilot.mcp.abapAdt.url": {
           "type": "string",
           "default": "",
@@ -251,6 +273,20 @@
             "%dnova-copilot.config.mcp.abapAdt.authType.jwt.description%"
           ],
           "description": "%dnova-copilot.config.mcp.abapAdt.authType.description%"
+        },
+        "dnova-copilot.abap.agentGuide.autoCreate": {
+          "type": "boolean",
+          "default": true,
+          "description": "%dnova-copilot.config.abap.agentGuide.autoCreate.description%"
+        },
+        "dnova-copilot.abap.agentGuide.file": {
+          "type": "string",
+          "default": "AGENTS.md",
+          "description": "%dnova-copilot.config.abap.agentGuide.file.description%",
+          "examples": [
+            "AGENTS.md",
+            ".github/copilot-instructions.md"
+          ]
         }
       }
     }

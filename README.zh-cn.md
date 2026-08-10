@@ -29,7 +29,7 @@
 
 - **增强 Copilot，而非替换它。** 没有新的侧边栏，没有新的聊天界面要学——只是在你已用的模型选择器里多一个模型，在你已有的聊天里多一套 ABAP 工具。
 - **Agent 模式、工具调用、Instructions、Skills——全部正常运作。** Copilot 的完整能力栈，现在跑在 DNova 上。
-- **内置 ABAP ADT MCP（DTT ABAP ADT）。** `@mcp-abap-adt/core` 服务器已随扩展打包——无需单独安装、无需 `npx`。启用它、填上你的 SAP 系统信息，就能用自然语言操作 ABAP 对象。
+- **内置 ABAP ADT MCP（dnova-abap-mcp）。** `@mcp-abap-adt/core` 服务器已随扩展打包——无需单独安装、无需 `npx`。启用它、填上你的 SAP 系统信息，就能用自然语言操作 ABAP 对象。
 - **BYOK，直接向 DNova 付费。** 你的 API Key、你的账单、你的速率限制。密钥存于操作系统钥匙串，不落盘。
 
 ## 功能特性
@@ -38,7 +38,7 @@
 
 DNova 模型与 GPT-4o、Claude 等并列在 Copilot Chat 的模型选择器中。对话中途可切换模型，不丢失历史。
 
-### 内置 ABAP ADT MCP（DTT ABAP ADT）
+### 内置 ABAP ADT MCP（dnova-abap-mcp）
 
 随扩展打包一套完整的 SAP ABAP 工具集：
 
@@ -99,6 +99,7 @@ DNova GLM-5.2 是纯文本模型。当你把截图拖入聊天时，扩展会先
 4. 首次使用工具时可能弹出 **允许本次会话**（VS Code 的 MCP 信任提示）——点击允许即可
 
 常用命令：
+
 - **DNova: 显示 ABAP ADT MCP 配置** —— 显示 `.env` 的确切路径、启动参数和健康检查（哪些设置缺失）
 - **DNova: 配置 ABAP ADT MCP** —— 把服务器写入全局 / 工作区 `mcp.json`
 - **DNova: 设置 ABAP ADT MCP 密码** —— 把 SAP 密码存进操作系统钥匙串
@@ -107,42 +108,42 @@ DNova GLM-5.2 是纯文本模型。当你把截图拖入聊天时，扩展会先
 
 ## 模型
 
-| 模型 | 适用场景 |
-| --- | --- |
+| 模型                    | 适用场景                    |
+| ----------------------- | --------------------------- |
 | **DNova GLM-5.2** | 编码、Agent 任务、ABAP 开发 |
 
 ## 设置
 
-| 设置项 | 默认值 | 说明 |
-| --- | --- | --- |
-| `dnova-copilot.baseUrl` | `https://nova.deloitte.com.cn/del/v1` | DNova API 基础地址 |
-| `dnova-copilot.maxTokens` | `0` | 最大输出 Token 数（`0` = 不限制） |
-| `dnova-copilot.modelIdOverrides` | `{ "glm-5.2": "glm-5.2" }` | 发送给 API 的模型 ID |
-| `dnova-copilot.debugMode` | `minimal` | `minimal` / `metadata` / `verbose` 诊断级别 |
-| `dnova-copilot.mcp.abapAdt.enabled` | `true` | 启用内置的 ABAP ADT MCP 服务器 |
-| `dnova-copilot.mcp.abapAdt.url` | `""` | SAP 系统地址 |
-| `dnova-copilot.mcp.abapAdt.client` | `100` | SAP 客户端号 |
-| `dnova-copilot.mcp.abapAdt.username` | `""` | SAP 用户名 |
-| `dnova-copilot.mcp.abapAdt.password` | `""` | SAP 密码（建议用 `useSecretStorage`） |
-| `dnova-copilot.mcp.abapAdt.useSecretStorage` | `false` | 将 SAP 密码存入操作系统钥匙串 |
-| `dnova-copilot.mcp.abapAdt.envPath` | `""` | 可选：指向含 SAP 凭据的 `.env` 文件 |
-| `dnova-copilot.mcp.abapAdt.language` | `EN` | SAP 登录语言 |
-| `dnova-copilot.mcp.abapAdt.systemType` | `onprem` | `onprem` / `cloud` / `legacy` |
-| `dnova-copilot.mcp.abapAdt.authType` | `basic` | `basic` / `jwt` |
+| 设置项                                         | 默认值                                  | 说明                                              |
+| ---------------------------------------------- | --------------------------------------- | ------------------------------------------------- |
+| `dnova-copilot.baseUrl`                      | `https://nova.deloitte.com.cn/del/v1` | DNova API 基础地址                                |
+| `dnova-copilot.maxTokens`                    | `0`                                   | 最大输出 Token 数（`0` = 不限制）               |
+| `dnova-copilot.modelIdOverrides`             | `{ "glm-5.2": "glm-5.2" }`            | 发送给 API 的模型 ID                              |
+| `dnova-copilot.debugMode`                    | `minimal`                             | `minimal` / `metadata` / `verbose` 诊断级别 |
+| `dnova-copilot.mcp.abapAdt.enabled`          | `true`                                | 启用内置的 ABAP ADT MCP 服务器                    |
+| `dnova-copilot.mcp.abapAdt.url`              | `""`                                  | SAP 系统地址                                      |
+| `dnova-copilot.mcp.abapAdt.client`           | `100`                                 | SAP 客户端号                                      |
+| `dnova-copilot.mcp.abapAdt.username`         | `""`                                  | SAP 用户名                                        |
+| `dnova-copilot.mcp.abapAdt.password`         | `""`                                  | SAP 密码（建议用`useSecretStorage`）            |
+| `dnova-copilot.mcp.abapAdt.useSecretStorage` | `false`                               | 将 SAP 密码存入操作系统钥匙串                     |
+| `dnova-copilot.mcp.abapAdt.envPath`          | `""`                                  | 可选：指向含 SAP 凭据的`.env` 文件              |
+| `dnova-copilot.mcp.abapAdt.language`         | `EN`                                  | SAP 登录语言                                      |
+| `dnova-copilot.mcp.abapAdt.systemType`       | `onprem`                              | `onprem` / `cloud` / `legacy`               |
+| `dnova-copilot.mcp.abapAdt.authType`         | `basic`                               | `basic` / `jwt`                               |
 
 ## 命令
 
-| 命令 | 说明 |
-| --- | --- |
-| `DNova: 设置 API Key` | 把 DNova API Key 存入操作系统钥匙串 |
-| `DNova: 获取 API Key` | 显示是否已配置 API Key |
-| `DNova: 清除 API Key` | 移除已保存的 API Key |
-| `DNova: 打开设置` | 打开扩展设置 |
-| `DNova: 显示日志` | 打开扩展输出通道 |
-| `DNova: 打开请求 Dump 目录` | 打开详细调试的 dump 目录 |
-| `DNova: 设置 ABAP ADT MCP 密码` | 把 SAP 密码存入操作系统钥匙串 |
-| `DNova: 配置 ABAP ADT MCP` | 把 MCP 服务器写入 `mcp.json`（全局或工作区） |
-| `DNova: 显示 ABAP ADT MCP 配置` | 显示 `.env` 路径、启动参数和连接健康检查 |
+| 命令                              | 说明                                          |
+| --------------------------------- | --------------------------------------------- |
+| `DNova: 设置 API Key`           | 把 DNova API Key 存入操作系统钥匙串           |
+| `DNova: 获取 API Key`           | 显示是否已配置 API Key                        |
+| `DNova: 清除 API Key`           | 移除已保存的 API Key                          |
+| `DNova: 打开设置`               | 打开扩展设置                                  |
+| `DNova: 显示日志`               | 打开扩展输出通道                              |
+| `DNova: 打开请求 Dump 目录`     | 打开详细调试的 dump 目录                      |
+| `DNova: 设置 ABAP ADT MCP 密码` | 把 SAP 密码存入操作系统钥匙串                 |
+| `DNova: 配置 ABAP ADT MCP`      | 把 MCP 服务器写入`mcp.json`（全局或工作区） |
+| `DNova: 显示 ABAP ADT MCP 配置` | 显示`.env` 路径、启动参数和连接健康检查     |
 
 ## 安全
 

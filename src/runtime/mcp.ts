@@ -3,6 +3,7 @@ import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { t } from '../i18n';
 import { logger } from '../logger';
 
 /**
@@ -17,7 +18,7 @@ import { logger } from '../logger';
  */
 
 const MCP_PROVIDER_ID = 'dnova.mcp-abap-adt';
-const MCP_SERVER_LABEL = 'DTT ABAP ADT';
+const MCP_SERVER_LABEL = 'dnova-abap-mcp';
 const MCP_SERVER_VERSION = '8.13.0';
 const SECRET_PASSWORD_KEY = 'dnova.mcp.abapAdt.password';
 const RELATIVE_SERVER_JS = path.join(
@@ -30,6 +31,7 @@ const RELATIVE_SERVER_JS = path.join(
 
 interface AbapAdtSettings {
 	enabled: boolean;
+	startupCheck: boolean;
 	url: string;
 	client: string;
 	username: string;
@@ -45,6 +47,7 @@ function readSettings(): AbapAdtSettings {
 	const cfg = vscode.workspace.getConfiguration('dnova-copilot.mcp.abapAdt');
 	return {
 		enabled: cfg.get<boolean>('enabled', true),
+		startupCheck: cfg.get<boolean>('startupCheck', true),
 		url: cfg.get<string>('url', ''),
 		client: cfg.get<string>('client', ''),
 		username: cfg.get<string>('username', ''),
@@ -76,7 +79,7 @@ export async function setAbapAdtPassword(context: vscode.ExtensionContext): Prom
 	const password = await vscode.window.showInputBox({
 		password: true,
 		placeHolder: '••••••••',
-		title: 'DTT ABAP ADT MCP',
+		title: 'dnova-abap-mcp',
 		prompt: 'Enter the SAP password',
 		ignoreFocusOut: true,
 	});
@@ -84,7 +87,7 @@ export async function setAbapAdtPassword(context: vscode.ExtensionContext): Prom
 		return; // cancelled
 	}
 	await context.secrets.store(SECRET_PASSWORD_KEY, password);
-	void vscode.window.showInformationMessage('DTT ABAP ADT MCP: SAP password saved.');
+	void vscode.window.showInformationMessage('dnova-abap-mcp: SAP password saved.');
 }
 
 /**
@@ -250,6 +253,257 @@ export async function registerMcpServer(context: vscode.ExtensionContext): Promi
 	});
 
 	context.subscriptions.push(disposable, definitionsChanged, configListener);
+
+	// Startup health check — delayed so activation is never blocked. When
+	// enabled it spawns the bundled server and calls GetSession against SAP,
+	// then notifies the user of success/failure (with an actionable button).
+	const startupCheckTimer = setTimeout(() => {
+		void runStartupCheck(context).catch((error) => {
+			logger.warn('ABAP ADT MCP: startup check threw an error', error);
+		});
+	}, 5000);
+	context.subscriptions.push(
+		new vscode.Disposable(() => clearTimeout(startupCheckTimer)),
+	);
+}
+
+// ---- Startup health check --------------------------------------------------
+
+interface McpConnectionTestResult {
+	ok: boolean;
+	error?: string;
+}
+
+/**
+ * Spawn the bundled MCP server and verify it can reach SAP by sending an
+ * `initialize` request followed by a real `GetSession` tool call. The child is
+ * killed afterwards. Never blocks activation — it is only invoked from the
+ * delayed startup check.
+ */
+function testMcpConnection(
+	context: vscode.ExtensionContext,
+	settings: AbapAdtSettings,
+): Promise<McpConnectionTestResult> {
+	return new Promise((resolve) => {
+		const serverJs = path.join(context.extensionPath, RELATIVE_SERVER_JS);
+		if (!fs.existsSync(serverJs)) {
+			resolve({
+				ok: false,
+				error: 'bundled MCP server file not found (please reinstall the extension)',
+			});
+			return;
+		}
+
+		const envPath = settings.envPath || getGeneratedEnvPath(context);
+		const args = ['--transport=stdio'];
+		if (envPath) {
+			args.push('--env-path', envPath, '--system-type', settings.systemType);
+		}
+
+		let child: cp.ChildProcess;
+		try {
+			child = cp.spawn(resolveNodeExecutable(), [serverJs, ...args], {
+				stdio: ['pipe', 'pipe', 'pipe'],
+			});
+		} catch (error) {
+			resolve({
+				ok: false,
+				error: `spawn failed: ${error instanceof Error ? error.message : String(error)}`,
+			});
+			return;
+		}
+
+		let settled = false;
+		let stdoutBuffer = '';
+		const pending = new Map<number, (message: Record<string, unknown>) => void>();
+		let nextId = 1;
+
+		const finish = (result: McpConnectionTestResult): void => {
+			if (settled) {
+				return;
+			}
+			settled = true;
+			clearTimeout(timer);
+			try {
+				child.kill();
+			} catch {
+				// Already exited — nothing to clean up.
+			}
+			resolve(result);
+		};
+
+		const timer = setTimeout(() => {
+			finish({
+				ok: false,
+				error: 'timeout — MCP server did not respond within 15s',
+			});
+		}, 15000);
+
+		child.on('error', (error) => finish({ ok: false, error: error.message }));
+
+		child.stdout?.on('data', (chunk: Buffer) => {
+			stdoutBuffer += chunk.toString();
+			let newlineIndex: number;
+			while ((newlineIndex = stdoutBuffer.indexOf('\n')) >= 0) {
+				const line = stdoutBuffer.slice(0, newlineIndex).trim();
+				stdoutBuffer = stdoutBuffer.slice(newlineIndex + 1);
+				if (!line) {
+					continue;
+				}
+				let message: Record<string, unknown>;
+				try {
+					message = JSON.parse(line) as Record<string, unknown>;
+				} catch {
+					continue; // Not JSON — probably a stray log line.
+				}
+				const id = message.id;
+				if (typeof id === 'number' && pending.has(id)) {
+					const handler = pending.get(id)!;
+					pending.delete(id);
+					handler(message);
+				}
+			}
+		});
+
+		const request = (method: string, params: unknown): Promise<Record<string, unknown>> =>
+			new Promise((res, rej) => {
+				const id = nextId++;
+				const requestTimer = setTimeout(() => {
+					pending.delete(id);
+					rej(new Error(`${method} timed out`));
+				}, 10000);
+				pending.set(id, (message) => {
+					clearTimeout(requestTimer);
+					res(message);
+				});
+				child.stdin?.write(
+					JSON.stringify({ jsonrpc: '2.0', id, method, params: params ?? {} }) + '\n',
+				);
+			});
+
+		void (async () => {
+			try {
+				const init = await request('initialize', {
+					protocolVersion: '2024-11-05',
+					capabilities: {},
+					clientInfo: { name: 'dnova-startup-check', version: '1.0.0' },
+				});
+				if (init.error) {
+					finish({
+						ok: false,
+						error: `initialize failed: ${JSON.stringify(init.error)}`,
+					});
+					return;
+				}
+
+				const call = await request('tools/call', {
+					name: 'GetSession',
+					arguments: {},
+				});
+				const rpcError = call.error as { message?: string } | undefined;
+				if (rpcError) {
+					finish({
+						ok: false,
+						error: rpcError.message ?? 'GetSession failed',
+					});
+					return;
+				}
+				const result = call.result as
+					| {
+							isError?: boolean;
+							content?: Array<{ type?: string; text?: string }>;
+					  }
+					| undefined;
+				const text = result?.content?.map((c) => c.text ?? '').join(' ') ?? '';
+				if (result?.isError) {
+					finish({
+						ok: false,
+						error: text || 'GetSession returned an error (credentials rejected or server in inspection-only mode)',
+					});
+					return;
+				}
+				if (/session/i.test(text) && !/inspection|mock|not configured|no SAP system/i.test(text)) {
+					finish({ ok: true });
+					return;
+				}
+				// The tool answered but the payload looks non-connecting — treat as
+				// failure unless the response was just empty.
+				finish({
+					ok: text === '',
+					error: text || 'GetSession did not return a session (server likely in inspection-only mode)',
+				});
+			} catch (error) {
+				finish({
+					ok: false,
+					error: error instanceof Error ? error.message : String(error),
+				});
+			}
+		})();
+	});
+}
+
+/**
+ * Startup health check for the bundled ABAP ADT MCP server. Runs a few seconds
+ * after activation (delayed so it never blocks startup). When the MCP is
+ * disabled or `startupCheck` is off it does nothing. When the configuration is
+ * incomplete it warns and offers to open the config report; otherwise it spawns
+ * the server, calls GetSession and reports success/failure with an actionable
+ * button.
+ */
+export async function runStartupCheck(context: vscode.ExtensionContext): Promise<void> {
+	const settings = readSettings();
+	if (!settings.enabled) {
+		logger.info('ABAP ADT MCP: startup check skipped — MCP disabled');
+		return;
+	}
+	if (!settings.startupCheck) {
+		logger.info('ABAP ADT MCP: startup check skipped — startupCheck setting is off');
+		return;
+	}
+
+	// Config completeness (fast, no spawn).
+	const missing: string[] = [];
+	if (!settings.url) {
+		missing.push(t('mcp.startup.missing.url'));
+	}
+	if (!settings.username) {
+		missing.push(t('mcp.startup.missing.username'));
+	}
+	if (!(await resolvePassword(context, settings))) {
+		missing.push(t('mcp.startup.missing.password'));
+	}
+
+	if (missing.length > 0) {
+		logger.warn(`ABAP ADT MCP: startup check — not fully configured, missing: ${missing.join(', ')}`);
+		const action = await vscode.window.showWarningMessage(
+			t('mcp.startup.notConfigured', missing.join('、')),
+			t('mcp.startup.openConfig'),
+			t('mcp.startup.dismiss'),
+		);
+		if (action === t('mcp.startup.openConfig')) {
+			void showAbapAdtMcpConfig(context);
+		}
+		return;
+	}
+
+	// Real connection probe.
+	logger.info('ABAP ADT MCP: startup check — probing SAP connection…');
+	const result = await testMcpConnection(context, settings);
+	if (result.ok) {
+		logger.info('ABAP ADT MCP: startup check — OK (connected to SAP)');
+		void vscode.window.showInformationMessage(t('mcp.startup.ok'));
+		return;
+	}
+
+	logger.warn(`ABAP ADT MCP: startup check — FAILED: ${result.error}`);
+	const action = await vscode.window.showErrorMessage(
+		t('mcp.startup.failed', result.error ?? 'unknown error'),
+		t('mcp.startup.openConfig'),
+		t('mcp.startup.dismiss'),
+	);
+	if (action === t('mcp.startup.openConfig')) {
+		void showAbapAdtMcpConfig(context);
+	}
 }
 
 // ---- mcp.json configuration helper -----------------------------------------
@@ -309,7 +563,7 @@ export async function configureAbapAdtMcp(context: vscode.ExtensionContext): Pro
 	const serverJs = path.join(context.extensionPath, RELATIVE_SERVER_JS);
 	if (!fs.existsSync(serverJs)) {
 		void vscode.window.showErrorMessage(
-			'Bundled DTT ABAP ADT MCP server not found. Please reinstall the extension.',
+			'Bundled dnova-abap-mcp server not found. Please reinstall the extension.',
 		);
 		return;
 	}
@@ -327,7 +581,7 @@ export async function configureAbapAdtMcp(context: vscode.ExtensionContext): Pro
 		},
 	];
 	const chosen = await vscode.window.showQuickPick(targets, {
-		placeHolder: 'Where should the DTT ABAP ADT MCP server be configured?',
+		placeHolder: 'Where should the dnova-abap-mcp server be configured?',
 	});
 	if (!chosen) {
 		return;
@@ -368,7 +622,7 @@ export async function configureAbapAdtMcp(context: vscode.ExtensionContext): Pro
 		await fs.promises.writeFile(filePath, JSON.stringify(config, null, 2) + '\n', 'utf8');
 
 		void vscode.window.showInformationMessage(
-			`DTT ABAP ADT MCP configured in ${filePath}. Manage it with the "MCP: List Servers" command or the Extensions view.`,
+			`dnova-abap-mcp configured in ${filePath}. Manage it with the "MCP: List Servers" command or the Extensions view.`,
 		);
 	} catch (error) {
 		void vscode.window.showErrorMessage(
@@ -418,7 +672,7 @@ export async function showAbapAdtMcpConfig(context: vscode.ExtensionContext): Pr
 
 	const serverJs = path.join(context.extensionPath, RELATIVE_SERVER_JS);
 	const report = [
-		'==== DTT ABAP ADT MCP 配置状态 ====',
+		'==== dnova-abap-mcp 配置状态 ====',
 		`● enabled           : ${settings.enabled}`,
 		`● SAP URL           : ${settings.url || '(未配置)'}`,
 		`● Client            : ${settings.client}`,
@@ -438,7 +692,7 @@ export async function showAbapAdtMcpConfig(context: vscode.ExtensionContext): Pr
 		'==============================',
 	].join('\n');
 
-	const channel = vscode.window.createOutputChannel('DTT ABAP ADT MCP');
+	const channel = vscode.window.createOutputChannel('dnova-abap-mcp');
 	channel.clear();
 	channel.append(report);
 	channel.show();
