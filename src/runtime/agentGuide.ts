@@ -33,22 +33,26 @@ This workspace contains SAP ABAP development source code.
 ### Prefer the built-in ABAP MCP
 
 The "DNova for Copilot Chat" extension bundles a complete SAP ABAP MCP server
-named **\`dnova-abap-mcp\`**. Its tools appear under the \`mcp__dnova-abap-mcp__\`
-prefix. For any task that touches **SAP ABAP repository objects** — reading or
-editing classes, function modules, programs, tables, CDS views, data elements,
-domains; activating or syntax-checking objects; running runtime queries;
-searching the ABAP repository — **prefer the \`mcp__dnova-abap-mcp__*\` tools
-first** before falling back to local file inspection.
+named **\`dnova-abap-mcp\`**. It is exposed as 5 facade tools — \`abap_tool_search\`,
+\`abap_read\`, \`abap_search\`, \`abap_write\`, \`abap_execute\` (full names carry a
+session prefix like \`mcp_dnova-abap-fa_abap_read\`). For any task that touches
+**SAP ABAP repository objects** — reading or editing classes, function modules,
+programs, tables, CDS views, data elements, domains; activating or
+syntax-checking objects; running runtime queries; searching the ABAP repository —
+**use the facade tools first** before falling back to local file inspection.
 
-Common mappings:
-- Read object source / metadata → \`mcp__dnova-abap-mcp__Get*\` tools
-- Create an object → \`mcp__dnova-abap-mcp__Create*\` tools
-- Update / edit an object → \`mcp__dnova-abap-mcp__Update*\` tools
-- Activate / check an object → \`mcp__dnova-abap-mcp__Activate*\` / \`Check*\` tools
-- Search the ABAP repository → \`mcp__dnova-abap-mcp__Search*\` tools
+Workflow: call \`abap_tool_search\` with the **exact** core tool name (e.g.
+\`ReadProgram\`, \`SearchSource\`, \`ListTransports\`) to find the right facade, then
+forward through it:
+- Read object source / metadata → \`abap_read\` (\`Get*\` / \`Read*\` / \`List*\` core tools)
+- Create an object → \`abap_write\` (\`Create*\` core tools)
+- Update / edit an object → \`abap_write\` (\`Update*\` core tools)
+- Activate / check an object → \`abap_write\` (\`Activate*\` / \`Check*\` core tools)
+- Search the ABAP repository → \`abap_search\` (\`Search*\` core tools)
+- Advanced / any tool → \`abap_execute\`
 
-If the \`mcp__dnova-abap-mcp__*\` tools are unavailable (MCP disabled or not
-connected), tell the user and inspect the local files as a fallback.
+If the facade tools are unavailable (MCP disabled or not connected), tell the
+user and inspect the local files as a fallback.
 
 ${GUIDE_END}`;
 

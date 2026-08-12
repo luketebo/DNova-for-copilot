@@ -3,7 +3,7 @@
   "displayName": "DNova for Copilot Chat",
   "description": "Use DNova GLM-5.2 in Copilot Chat. Zero config, BYOK.",
   "icon": "resources/icon.png",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "publisher": "luketebo",
   "license": "MIT",
   "repository": {
@@ -195,6 +195,23 @@
           "default": true,
           "description": "%dnova-copilot.config.mcp.abapAdt.enabled.description%"
         },
+        "dnova-copilot.mcp.abapAdt.httpEnabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "%dnova-copilot.config.mcp.abapAdt.httpEnabled.description%"
+        },
+        "dnova-copilot.mcp.abapAdt.httpHost": {
+          "type": "string",
+          "default": "127.0.0.1",
+          "description": "%dnova-copilot.config.mcp.abapAdt.httpHost.description%"
+        },
+        "dnova-copilot.mcp.abapAdt.httpPort": {
+          "type": "number",
+          "default": 3000,
+          "minimum": 1024,
+          "maximum": 65535,
+          "description": "%dnova-copilot.config.mcp.abapAdt.httpPort.description%"
+        },
         "dnova-copilot.mcp.abapAdt.startupCheck": {
           "type": "boolean",
           "default": true,
@@ -274,6 +291,19 @@
           ],
           "description": "%dnova-copilot.config.mcp.abapAdt.authType.description%"
         },
+        "dnova-copilot.mcp.abapAdt.exposition": {
+          "type": "string",
+          "default": "readonly",
+          "enum": [
+            "readonly",
+            "readonly,high",
+            "readonly,low",
+            "high",
+            "low",
+            "compact"
+          ],
+          "description": "%dnova-copilot.config.mcp.abapAdt.exposition.description%"
+        },
         "dnova-copilot.abap.agentGuide.autoCreate": {
           "type": "boolean",
           "default": true,
@@ -296,7 +326,7 @@
     "vscode:prepublish": "bash .github/scripts/prepare-marketplace-readme.sh && npm run bundle",
     "compile": "npm run clean && tsc -p ./",
     "watch": "npm run clean && tsc -watch -p ./",
-    "bundle": "npm run clean && esbuild src/extension.ts --bundle --outfile=out/extension.js --minify --format=cjs --platform=node --external:vscode",
+    "bundle": "npm run clean && esbuild src/extension.ts --bundle --outfile=out/extension.js --minify --format=cjs --platform=node --external:vscode && esbuild src/runtime/abapFacade.ts --bundle --outfile=out/abapFacade.js --minify --format=cjs --platform=node",
     "lint": "oxlint",
     "format": "oxfmt --write src/",
     "format:check": "oxfmt --check src/",
@@ -315,6 +345,7 @@
     "typescript": "^6.0.3"
   },
   "dependencies": {
-    "@mcp-abap-adt/core": "^8.13.0"
+    "@mcp-abap-adt/core": "^8.13.0",
+    "@modelcontextprotocol/sdk": "^1.30.0"
   }
 }

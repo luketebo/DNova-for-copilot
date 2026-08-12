@@ -27,7 +27,7 @@ export function registerCommands(context: vscode.ExtensionContext): void {
 			showAbapAdtMcpConfig(context),
 		),
 		vscode.commands.registerCommand('dnova-copilot.checkAbapAdtMcp', () =>
-			runStartupCheck(context),
+			runStartupCheck(context, true),
 		),
 		vscode.commands.registerCommand('dnova-copilot.createAbapAgentGuide', () =>
 			createAbapAgentGuide(),

@@ -44,10 +44,24 @@ A complete SAP ABAP toolset is bundled with the extension:
 
 - **206 ABAP tools** — read/create/update/delete/activate/check, runtime & debugging, and search
 - **Works with on-premise (ECC/S4HANA), ABAP Cloud (BTP) and legacy** SAP systems
-- **stdio-based**, launched automatically by VS Code when you chat — no separate MCP server to install
+- **Local Streamable HTTP**, launched and managed by the extension on a local port (default `127.0.0.1:3000/mcp`)
 - **Use it in plain English** — "show me the source of class ZCL_BOOKING", "create table ZT_ORDER", "run the unit tests for this class"
 
 Example tool families: `GetTableContents` · `GetPackageContents` · `SearchSource` · `GetSqlQuery` · `CreateClass` · `UpdateProgram` · `ActivateTable` · `CheckClass` · `RuntimeRunProgram` · `ListTransports` …
+
+#### Tool set & Copilot's 128-tool limit
+
+Copilot caps the tools it exposes per request at **128**. Exposing all 206 tools can trigger Copilot's **tool deferral** — some tools are marked "deferred" and report *"Tool X is currently disabled by the user"* when called directly (a misleading message; the tool is simply not loaded yet). The extension avoids this with the `dnova-copilot.mcp.abapAdt.exposition` setting:
+
+- `readonly` (**default**) — ~90 safe read-only tools (Get/Read/Search/SQL/type info). No deferral; everything works directly.
+- `compact` — 22 facade tools (CRUD + activate/lock + unit tests + runtime + transport). No deferral.
+- `readonly,high` — the full 206 tools, but may trigger deferral.
+
+The extension now connects Copilot through a fixed-size facade. Copilot only enables `abap_tool_search`, `abap_read`, `abap_search`, `abap_write`, and `abap_execute`; it does not receive all 206 core tools in the request. For a less common operation, search the catalog with a capability keyword (or omit the query to browse), then forward the exact returned tool name and arguments through the indicated facade.
+
+The extension runs the MCP facade as a local Streamable HTTP service. Configure `dnova-copilot.mcp.abapAdt.httpHost` and `httpPort` as needed. Disabling `dnova-copilot.mcp.abapAdt.httpEnabled` stops MCP completely; it does not return to stdio mode.
+
+For example, search for `GetClass`, then call `abap_execute` with `tool: "GetClass"` and the argument object from the search result. The complete underlying tool catalog remains available without making Copilot manage hundreds of individual tools.
 
 <p align="center">
   <img src="resources/screenshots/04-agent.png" alt="ABAP ADT MCP tools running in Copilot agent mode" width="800">
@@ -121,6 +135,9 @@ Useful commands:
 | `dnova-copilot.modelIdOverrides`             | `{ "glm-5.2": "glm-5.2" }`            | API model IDs to send                                     |
 | `dnova-copilot.debugMode`                    | `minimal`                             | `minimal` / `metadata` / `verbose` diagnostics      |
 | `dnova-copilot.mcp.abapAdt.enabled`          | `true`                                | Enable the bundled ABAP ADT MCP server                    |
+| `dnova-copilot.mcp.abapAdt.httpEnabled`      | `true`                                | Enable the local Streamable HTTP MCP service; false disables MCP |
+| `dnova-copilot.mcp.abapAdt.httpHost`         | `127.0.0.1`                           | HTTP service bind address                                  |
+| `dnova-copilot.mcp.abapAdt.httpPort`         | `3000`                                | HTTP service listen port                                  |
 | `dnova-copilot.mcp.abapAdt.url`              | `""`                                  | SAP system URL                                            |
 | `dnova-copilot.mcp.abapAdt.client`           | `100`                                 | SAP client number                                         |
 | `dnova-copilot.mcp.abapAdt.username`         | `""`                                  | SAP username                                              |
