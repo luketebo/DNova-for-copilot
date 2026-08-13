@@ -2,23 +2,19 @@
 
 <p align="center">
   <!-- marketplace-readme:remove-start -->
-  <a href="https://marketplace.visualstudio.com/items?itemName=luke.dnova-for-copilot"><img src="https://img.shields.io/badge/VS%20Code%20Marketplace-Install-007ACC?logo=visualstudiocode&logoColor=white&style=for-the-badge" alt="Install from VS Code Marketplace"></a>
-  <a href="https://open-vsx.org/extension/luke/dnova-for-copilot"><img src="https://img.shields.io/badge/Open%20VSX-Install-6A4FB6?style=for-the-badge" alt="Install from Open VSX"></a>
+  <a href="https://marketplace.visualstudio.com/items?itemName=luketebo.dnova-for-copilot"><img src="https://img.shields.io/badge/VS%20Code%20Marketplace-Install-007ACC?logo=visualstudiocode&logoColor=white&style=for-the-badge" alt="Install from VS Code Marketplace"></a>
+  <a href="https://open-vsx.org/extension/luketebo/dnova-for-copilot"><img src="https://img.shields.io/badge/Open%20VSX-Install-6A4FB6?style=for-the-badge" alt="Install from Open VSX"></a>
   <br/>
   <!-- marketplace-readme:remove-end -->
-  <img src="https://img.shields.io/github/v/release/luke/dnova-for-copilot?style=for-the-badge&label=Version" alt="Version" />
+  <img src="https://img.shields.io/github/v/release/luketebo/DNova-for-copilot?style=for-the-badge&label=Version" alt="Version" />
 </p>
 
 <p align="center">
   English |
-  <a href="https://github.com/luke/dnova-for-copilot/blob/main/README.zh-cn.md">简体中文</a>
+  <a href="https://github.com/luketebo/DNova-for-copilot/blob/main/README.zh-cn.md">简体中文</a>
 </p>
 
 **Pick DNova (GLM-5.2) in the Copilot Chat model picker — and get a built-in ABAP ADT MCP that talks to your SAP system, all with your own API key.**
-
-<p align="center">
-  <img src="resources/screenshots/01-picker.png" alt="DNova GLM-5.2 in the Copilot Chat model picker" width="800">
-</p>
 
 Two things in one extension:
 
@@ -45,6 +41,8 @@ A complete SAP ABAP toolset is bundled with the extension:
 - **206 ABAP tools** — read/create/update/delete/activate/check, runtime & debugging, and search
 - **Works with on-premise (ECC/S4HANA), ABAP Cloud (BTP) and legacy** SAP systems
 - **Local Streamable HTTP**, launched and managed by the extension on a local port (default `127.0.0.1:3000/mcp`)
+- **A 5-tool facade** — Copilot only sees `abap_tool_search`, `abap_read`, `abap_search`, `abap_write`, `abap_execute`; the full catalog is one search away
+- **Agent guide & skill** — bundles an ABAP skill and can auto-write `AGENTS.md` in ABAP workspaces so Copilot agents reach for these tools first
 - **Use it in plain English** — "show me the source of class ZCL_BOOKING", "create table ZT_ORDER", "run the unit tests for this class"
 
 Example tool families: `GetTableContents` · `GetPackageContents` · `SearchSource` · `GetSqlQuery` · `CreateClass` · `UpdateProgram` · `ActivateTable` · `CheckClass` · `RuntimeRunProgram` · `ListTransports` …
@@ -53,15 +51,18 @@ Example tool families: `GetTableContents` · `GetPackageContents` · `SearchSour
 
 Copilot caps the tools it exposes per request at **128**. Exposing all 206 tools can trigger Copilot's **tool deferral** — some tools are marked "deferred" and report *"Tool X is currently disabled by the user"* when called directly (a misleading message; the tool is simply not loaded yet). The extension avoids this with the `dnova-copilot.mcp.abapAdt.exposition` setting:
 
-- `readonly` (**default**) — ~90 safe read-only tools (Get/Read/Search/SQL/type info). No deferral; everything works directly.
-- `compact` — 22 facade tools (CRUD + activate/lock + unit tests + runtime + transport). No deferral.
+- `readonly` (**default**) — ~68 safe read-only tools (Get/Read/Search/SQL/type info, analysis). No deferral; everything works directly.
+- `compact` — ~22 curated higher-level tools (CRUD + activate/lock + unit tests + runtime + transport). No deferral.
 - `readonly,high` — the full 206 tools, but may trigger deferral.
 
-The extension now connects Copilot through a fixed-size facade. Copilot only enables `abap_tool_search`, `abap_read`, `abap_search`, `abap_write`, and `abap_execute`; it does not receive all 206 core tools in the request. For a less common operation, search the catalog with a capability keyword (or omit the query to browse), then forward the exact returned tool name and arguments through the indicated facade.
+Copilot only ever receives the **fixed 5-tool facade** — `abap_tool_search`, `abap_read`, `abap_search`, `abap_write`, `abap_execute` — never the hundreds of core tools directly. The full catalog is fetched from the running server and searched on demand:
 
-The extension runs the MCP facade as a local Streamable HTTP service. Configure `dnova-copilot.mcp.abapAdt.httpHost` and `httpPort` as needed. Disabling `dnova-copilot.mcp.abapAdt.httpEnabled` stops MCP completely; it does not return to stdio mode.
+1. `abap_tool_search` — find the exact core tool by name or a capability keyword; omit the query to browse the whole catalog (paged).
+2. Forward the returned tool through the facade that serves it — reads via `abap_read`, repository/source search via `abap_search`, writes/activations via `abap_write`, anything else via `abap_execute`.
 
-For example, search for `GetClass`, then call `abap_execute` with `tool: "GetClass"` and the argument object from the search result. The complete underlying tool catalog remains available without making Copilot manage hundreds of individual tools.
+For example, search for `GetClass`, then call `abap_read` with `tool: "GetClass"` and the argument object from the search result. The complete underlying tool catalog remains available without making Copilot manage hundreds of individual tools.
+
+The facade runs as a local Streamable HTTP service. Configure `dnova-copilot.mcp.abapAdt.httpHost` and `httpPort` as needed. Disabling `dnova-copilot.mcp.abapAdt.httpEnabled` stops MCP completely; it does not return to stdio mode.
 
 <p align="center">
   <img src="resources/screenshots/04-agent.png" alt="ABAP ADT MCP tools running in Copilot agent mode" width="800">
@@ -90,6 +91,7 @@ Pure VS Code API + Node.js built-ins, plus the bundled `@mcp-abap-adt/core` MCP.
 
 - VS Code 1.116 or later
 - A **DNova API key** (BYOK) — the extension is zero-config; you bring your own key and endpoint
+- A recent **Node.js** runtime (≥ 22) for the bundled ABAP ADT MCP server (VS Code's embedded runtime is used as a fallback)
 
 ### 1. Use DNova GLM-5.2 as your Copilot model
 
@@ -108,59 +110,71 @@ Pure VS Code API + Node.js built-ins, plus the bundled `@mcp-abap-adt/core` MCP.
    - `username` / `password` — basic auth credentials
    - `systemType` — `onprem` / `cloud` / `legacy`
    - (alternative) `envPath` — point to an existing `.env` file with `SAP_URL`, `SAP_CLIENT`, `SAP_USERNAME`, `SAP_PASSWORD`, …
-2. Reload the window (`Developer: Reload Window`)
+2. First time only: reload the window (`Developer: Reload Window`) so the MCP server is registered. Later setting changes are picked up automatically — the extension regenerates `.env` and restarts the server without a reload.
 3. In Copilot Chat, ask it to use ABAP tools — e.g. *"read the source of class ZCL_BOOKING"*
 4. First tool use may ask you to **Allow in this Session** (VS Code's MCP trust prompt) — click allow.
 
 Useful commands:
 
-- **DNova: Show ABAP ADT MCP Config** — shows the exact `.env` path, launch args and a health check (which settings are missing)
+- **DNova: Check ABAP ADT MCP Connection** — run a connection health check against SAP right now (a check also runs automatically a few seconds after startup)
+- **DNova: Show ABAP ADT MCP Config** — shows the exact `.env` path, launch args and which settings are missing
 - **DNova: Configure ABAP ADT MCP** — write the server into a global/workspace `mcp.json`
 - **DNova: Set ABAP ADT MCP Password** — store the SAP password in the OS keychain
+- **DNova: Update ABAP Agent Guide** / **DNova: Remove ABAP Agent Guide** — write or remove the `AGENTS.md` guide that tells Copilot to prefer these ABAP tools (auto-created in ABAP workspaces)
 
-> The extension regenerates the `.env` automatically when you change the settings — no need to reload for most changes.
+> The extension regenerates the `.env` automatically when you change the settings — no reload needed for most changes.
 
 ## Models
 
-| Model                   | Best For                              |
-| ----------------------- | ------------------------------------- |
+
+| Model             | Best For                              |
+| ------------------- | --------------------------------------- |
 | **DNova GLM-5.2** | Coding, agent tasks, ABAP development |
 
 ## Settings
 
-| Setting                                        | Default                                 | Description                                               |
-| ---------------------------------------------- | --------------------------------------- | --------------------------------------------------------- |
-| `dnova-copilot.baseUrl`                      | `https://nova.deloitte.com.cn/del/v1` | DNova API base URL                                        |
-| `dnova-copilot.maxTokens`                    | `0`                                   | Max output tokens (`0` = no limit)                      |
-| `dnova-copilot.modelIdOverrides`             | `{ "glm-5.2": "glm-5.2" }`            | API model IDs to send                                     |
-| `dnova-copilot.debugMode`                    | `minimal`                             | `minimal` / `metadata` / `verbose` diagnostics      |
-| `dnova-copilot.mcp.abapAdt.enabled`          | `true`                                | Enable the bundled ABAP ADT MCP server                    |
-| `dnova-copilot.mcp.abapAdt.httpEnabled`      | `true`                                | Enable the local Streamable HTTP MCP service; false disables MCP |
-| `dnova-copilot.mcp.abapAdt.httpHost`         | `127.0.0.1`                           | HTTP service bind address                                  |
-| `dnova-copilot.mcp.abapAdt.httpPort`         | `3000`                                | HTTP service listen port                                  |
-| `dnova-copilot.mcp.abapAdt.url`              | `""`                                  | SAP system URL                                            |
-| `dnova-copilot.mcp.abapAdt.client`           | `100`                                 | SAP client number                                         |
-| `dnova-copilot.mcp.abapAdt.username`         | `""`                                  | SAP username                                              |
-| `dnova-copilot.mcp.abapAdt.password`         | `""`                                  | SAP password (prefer`useSecretStorage`)                 |
-| `dnova-copilot.mcp.abapAdt.useSecretStorage` | `false`                               | Store the SAP password in the OS keychain                 |
-| `dnova-copilot.mcp.abapAdt.envPath`          | `""`                                  | Optional path to an existing`.env` with SAP credentials |
-| `dnova-copilot.mcp.abapAdt.language`         | `EN`                                  | SAP logon language                                        |
-| `dnova-copilot.mcp.abapAdt.systemType`       | `onprem`                              | `onprem` / `cloud` / `legacy`                       |
-| `dnova-copilot.mcp.abapAdt.authType`         | `basic`                               | `basic` / `jwt`                                       |
+
+| Setting                                      | Default                               | Description                                                           |
+| ---------------------------------------------- | --------------------------------------- | ----------------------------------------------------------------------- |
+| `dnova-copilot.baseUrl`                      | `https://nova.deloitte.com.cn/del/v1` | DNova API base URL                                                    |
+| `dnova-copilot.maxTokens`                    | `0`                                   | Max output tokens (`0` = no limit)                                    |
+| `dnova-copilot.modelIdOverrides`             | `{ "glm-5.2": "glm-5.2" }`            | API model IDs to send                                                 |
+| `dnova-copilot.debugMode`                    | `minimal`                             | `minimal` / `metadata` / `verbose` diagnostics                        |
+| `dnova-copilot.mcp.abapAdt.enabled`          | `true`                                | Enable the bundled ABAP ADT MCP server                                |
+| `dnova-copilot.mcp.abapAdt.httpEnabled`      | `true`                                | Enable the local Streamable HTTP MCP service; false disables MCP      |
+| `dnova-copilot.mcp.abapAdt.httpHost`         | `127.0.0.1`                           | HTTP service bind address                                             |
+| `dnova-copilot.mcp.abapAdt.httpPort`         | `3000`                                | HTTP service listen port                                              |
+| `dnova-copilot.mcp.abapAdt.url`              | `""`                                  | SAP system URL                                                        |
+| `dnova-copilot.mcp.abapAdt.client`           | `100`                                 | SAP client number                                                     |
+| `dnova-copilot.mcp.abapAdt.username`         | `""`                                  | SAP username                                                          |
+| `dnova-copilot.mcp.abapAdt.password`         | `""`                                  | SAP password (prefer`useSecretStorage`)                               |
+| `dnova-copilot.mcp.abapAdt.useSecretStorage` | `false`                               | Store the SAP password in the OS keychain                             |
+| `dnova-copilot.mcp.abapAdt.envPath`          | `""`                                  | Optional path to an existing`.env` with SAP credentials               |
+| `dnova-copilot.mcp.abapAdt.language`         | `EN`                                  | SAP logon language                                                    |
+| `dnova-copilot.mcp.abapAdt.systemType`       | `onprem`                              | `onprem` / `cloud` / `legacy`                                         |
+| `dnova-copilot.mcp.abapAdt.authType`         | `basic`                               | `basic` / `jwt`                                                       |
+| `dnova-copilot.mcp.abapAdt.startupCheck`     | `true`                                | Run a GetSession health check a few seconds after startup             |
+| `dnova-copilot.mcp.abapAdt.exposition`       | `readonly`                            | Core tool surface:`readonly` / `compact` / `readonly,high` / …       |
+| `dnova-copilot.abap.agentGuide.autoCreate`   | `true`                                | Auto-write`AGENTS.md` in ABAP workspaces                              |
+| `dnova-copilot.abap.agentGuide.file`         | `AGENTS.md`                           | Guide file to write (`AGENTS.md` / `.github/copilot-instructions.md`) |
 
 ## Commands
 
-| Command                              | Description                                                  |
-| ------------------------------------ | ------------------------------------------------------------ |
-| `DNova: Set API Key`               | Store your DNova API key in the OS keychain                  |
-| `DNova: Get API Key`               | Show whether an API key is configured                        |
-| `DNova: Clear API Key`             | Remove the stored API key                                    |
-| `DNova: Open Settings`             | Open the extension settings                                  |
-| `DNova: Show Logs`                 | Open the extension output channel                            |
-| `DNova: Open Request Dumps Folder` | Open the verbose debug dump folder                           |
-| `DNova: Set ABAP ADT MCP Password` | Store the SAP password in the OS keychain                    |
-| `DNova: Configure ABAP ADT MCP`    | Write the MCP server into`mcp.json` (global or workspace)  |
-| `DNova: Show ABAP ADT MCP Config`  | Show`.env` path, launch args and a connection health check |
+
+| Command                                | Description                                                |
+| ---------------------------------------- | ------------------------------------------------------------ |
+| `DNova: Set API Key`                   | Store your DNova API key in the OS keychain                |
+| `DNova: Get API Key`                   | Show whether an API key is configured                      |
+| `DNova: Clear API Key`                 | Remove the stored API key                                  |
+| `DNova: Open Settings`                 | Open the extension settings                                |
+| `DNova: Show Logs`                     | Open the extension output channel                          |
+| `DNova: Open Request Dumps Folder`     | Open the verbose debug dump folder                         |
+| `DNova: Set ABAP ADT MCP Password`     | Store the SAP password in the OS keychain                  |
+| `DNova: Configure ABAP ADT MCP`        | Write the MCP server into`mcp.json` (global or workspace)  |
+| `DNova: Show ABAP ADT MCP Config`      | Show`.env` path, launch args and a connection health check |
+| `DNova: Check ABAP ADT MCP Connection` | Run a connection health check against SAP right now        |
+| `DNova: Update ABAP Agent Guide`       | Write/refresh the`AGENTS.md` guide for this workspace      |
+| `DNova: Remove ABAP Agent Guide`       | Remove the`AGENTS.md` guide block from the workspace       |
 
 ## Security
 
